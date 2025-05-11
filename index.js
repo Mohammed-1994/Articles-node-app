@@ -23,7 +23,11 @@ const mongooseUrl =
  *
  */
 mongoose
-  .connect(mongooseUrl)
+  .connect(mongooseUrl,{
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 30000 // زيادة المهلة إلى 30 ثانية
+})
   .then(() => {
     console.log("DB connected successfully.");
   })
