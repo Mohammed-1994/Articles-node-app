@@ -1,7 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const articleConroller = require("../controllers/articleController");
+
+
+// using json in server to recive body params in json
 router.use(express.json());
+
 
 router.get("/", articleConroller.getAllArticles);
 

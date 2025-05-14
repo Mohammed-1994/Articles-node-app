@@ -3,8 +3,11 @@
  * ODM this object used for connect with DB and do all work.
  */
 const Article = require("../models/Article");
+const sendResponse = require("../helper/responseHelper");
 
-// using json in server to recive body params in json
+// input validator
+const Joi = require("joi");
+
 
 /**
  * get all article from database.
@@ -12,9 +15,30 @@ const Article = require("../models/Article");
  * and retreve all articles as json response.
  */
 exports.getAllArticles = async (req, res) => {
-  const allArticles = await Article.find();
-  res.json(allArticles);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 5;
+  const totalArticles = await Article.countDocuments();
+
+  const skip = (page - 1) * limit;
+  try {
+    const allArticles = await Article.find().skip(skip).limit(limit);
+
+    sendResponse(res, 200, "success", "All Articles", allArticles, null, {
+      totalArticles,
+      totlaPages: Math.ceil(totalArticles / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    console.log(error);
+
+    sendResponse(res, 500, "error", "Server Error", null, error.message);
+  }
 };
+
+const articleSchema = Joi.object({
+  articleTitle: Joi.string().min(3).required(),
+  articleBody: Joi.string().min(10).required(),
+});
 
 /**
  * get one article by ID
@@ -24,11 +48,49 @@ exports.getAllArticles = async (req, res) => {
  */
 exports.getArticleByID = async (req, res) => {
   const articleId = req.params.articleID;
-  res.json(await Article.findById(articleId));
+  try {
+    const article = await Article.findById(articleId);
+    if (!article) {
+      sendResponse(
+        res,
+        404,
+        "error",
+        "Article not exist",
+        null,
+        "Article not found"
+      );
+    }
+    sendResponse(res, 200, "succes", "Aricle", article, null);
+  } catch (error) {
+    sendResponse(res, 500, "error", "Servers Error", null, error);
+  }
 };
 
 exports.deleteArticle = async (req, res) => {
-  res.json(await Article.findByIdAndDelete(req.params.articleID));
+  const articleId = req.params.articleID;
+  try {
+    const article = await Article.findByIdAndDelete(articleId);
+    if (!article) {
+      sendResponse(
+        res,
+        404,
+        "error",
+        "Article not exist",
+        null,
+        "Article not found"
+      );
+    }
+    sendResponse(
+      res,
+      200,
+      "succes",
+      "Article Deleted Successfully",
+      article,
+      null
+    );
+  } catch (error) {
+    sendResponse(res, 500, "error", "Servers Error", null, error);
+  }
 };
 
 /**
@@ -38,7 +100,7 @@ exports.deleteArticle = async (req, res) => {
  * recive the promise that returned from the sace fun
  * send the reposns as json article
  */
-exports.addArticle = (req, res) => {
+exports.addArticle = async (req, res) => {
   const articleTitle = req.body.articleTitle;
   const articleBody = req.body.articleBody;
   const newArticle = new Article();
@@ -46,38 +108,62 @@ exports.addArticle = (req, res) => {
   newArticle.body = articleBody;
   newArticle.numberOfLikes = 0;
 
-  newArticle
-    .save()
-    .then((article) => {
-      res.json({
-        status: " article added successfully.",
-        "new article": article,
-      });
-    })
-    .catch((error) => {
-      console.log("error adding article", error);
-    });
+  try {
+    const { error } = articleSchema.validate(req.body);
+    if (error) {
+      console.log("error with entry");
+      sendResponse(
+        res,
+        400,
+        "error",
+        "Conn't add the Article",
+        null,
+        error.details[0].message
+      );
+    }
+    await newArticle.save();
+
+    sendResponse(
+      res,
+      201,
+      "succes",
+      "Article added successfully",
+      newArticle,
+      null
+    );
+  } catch (error) {
+    sendResponse(res, 500, "error", "Servers Error", null, error);
+  }
 };
 
-exports.updateArticle = (req, res) => {
-  Article.findByIdAndUpdate(
+exports.updateArticle = async (req, res) => {
+  const updatedArticle = await Article.findByIdAndUpdate(
     req.params.articleID,
 
     { title: req.body.articleTitle, body: req.body.articleBody },
     { new: true }
-  )
-    .then((updatedArticle) => {
-      if (!updatedArticle) {
-        return res.status(404).json({ message: "Article not found" });
-      }
+  );
+  try {
+    if (!updatedArticle) {
+      sendResponse(
+        res,
+        404,
+        "error",
+        "Article not exist",
+        null,
+        "Article not found"
+      );
+    }
 
-      res.json({
-        status: "Article Updated Successfully.",
-        article: updatedArticle,
-      });
-    })
-    .catch((error) => {
-      console.log("Error Updating Article", error);
-      res.status(500).json({ error: "Failed to update article" });
-    });
+    sendResponse(
+      res,
+      200,
+      "succes",
+      "Article Updated Successfully.",
+      updatedArticle,
+      null
+    );
+  } catch (error) {
+    sendResponse(res, 500, "error", "Failed to update article", null, error);
+  }
 };
