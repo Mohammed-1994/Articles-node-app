@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Error</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8d7da;
+      color: #721c24;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+    h1 {
+      font-size: 4em;
+      margin-bottom: 0;
+    }
+    p {
+      font-size: 1.5em;
+      margin-top: 0;
+    }
+    a {
+      margin-top: 20px;
+      color: #721c24;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Error</h1>
+  <h2><%= message || 'Something went wrong!' %></h2>
+  <% if(error) { %>
+    <pre><%= error %></pre>
+  <% } %>
+  <a href="/">Back to Home</a>
+</body>
+</html>

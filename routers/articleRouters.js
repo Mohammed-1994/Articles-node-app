@@ -1,22 +1,22 @@
 const express = require("express");
 const router = express.Router();
-const articleConroller = require("../controllers/articleController");
-
-
-// using json in server to recive body params in json
+const articleController = require("../controllers/articleController");
 router.use(express.json());
 
+router.get("/", articleController.getAllArticles);
 
-router.get("/", articleConroller.getAllArticles);
+router.post("/", articleController.createArticle);
 
-router.post("/articles/add_article", articleConroller.addArticle);
+router.get("/create_form", articleController.createArticleForm);
 
-router.get("/articles/:articleID", articleConroller.getArticleByID);
+router.get('/about', articleController.aboutPage);
+router.get("/:id", articleController.getArticleByID);
 
-router.get("/articles", articleConroller.getAllArticles);
+router.delete("/:id", articleController.deleteArticle);
 
-router.delete("/articles/:articleID", articleConroller.deleteArticle);
+router.put("/:id", articleController.updateArticle);
 
-router.put("/articles/:articleID", articleConroller.updateArticle);
+router.get('/:id/edit', articleController.editArticleForm);
+
 
 module.exports = router;

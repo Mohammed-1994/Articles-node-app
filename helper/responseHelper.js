@@ -1,25 +1,49 @@
-function sendResponse(
+// helpers/responseHelper.js
+
+const sendJsonResponse = (
   res,
   statusCode,
-  status,
   message,
   data = null,
-  error = null,
-  pagination
-) {
-  const response = {
-    status,
+  error = null
+) => {
+  return res.status(statusCode).json({
+    success: statusCode >= 200 && statusCode < 300,
     message,
     data,
     error,
-    pagination
-  };
+  });
+};
 
-  if (status === "success") delete res.error;
+const sendSuccessResponse = (res, message, data = null, view = "") => {
+  return res.status(200).render(view, {
+    success: true,
+    message,
+    data,
+    error: null,
+  });
+};
+const sendServerError = (res, err) => {
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Internal Server Error";
 
-  if (status === "error") delete res.data;
+  return res.status(statusCode).render("error", {
+    success: false,
+    message,
+    error: err.stack || null,
+  });
+};
 
-  return res.status(statusCode).json(response);
-}
-
-module.exports = sendResponse;
+const sendNotFoundError = (res) => {
+  return res.status(statusCode).render("error", {
+    success: false,
+    message: "Item Not Found",
+    error: "Item Not Found",
+  });
+};
+export default {
+  sendSuccessResponse,
+  sendNotFoundError,
+  sendJsonResponse,
+ sendServerError,
+};
