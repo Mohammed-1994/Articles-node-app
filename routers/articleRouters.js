@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const articleController = require("../controllers/articleController");
+const articleController = require("../controllers/articleViewController");
 router.use(express.json());
 
 router.get("/", articleController.getAllArticles);

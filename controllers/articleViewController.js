@@ -15,26 +15,28 @@ const Joi = require("joi");
  */
 
 exports.createArticleForm = async (req, res) => {
-  res.render("createArticleForm");
+  res.render("createArticleForm", { error: null });
 };
 exports.getAllArticles = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 6;
   const totalArticles = await Article.countDocuments();
-
   const skip = (page - 1) * limit;
   try {
     const allArticles = await Article.find().skip(skip).limit(limit);
-
-    return responseHelper.sendSuccessResponse(
-      res,
-      "Articles loaded successfully",
-      allArticles,
-      "articles"
-    );
+    res.render("articles", {
+      data: {
+        data: allArticles,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalArticles / limit),
+          totalArticles: totalArticles,
+        },
+      },
+    });
   } catch (error) {
     console.log(error);
-    responseHelper.handleExpressError(res, err);
+    res.status(500).render("error", { message: "Failed to load articles." });
   }
 };
 
@@ -49,18 +51,11 @@ exports.getArticleByID = async (req, res) => {
   try {
     const article = await Article.findById(id);
     if (!article) {
-      responseHelper.sendNotFoundError(res);
-
-      return;
+      return res.status(404).render("error", { message: "Article not found." });
     }
-    return responseHelper.sendSuccessResponse(
-      res,
-      "Article loaded successfully",
-      article,
-      "articleDetails"
-    );
+    res.render("articleDetails", { data: article });
   } catch (error) {
-    responseHelper.sendServerError(res, error);
+    res.status(500).render("error", { message: "Failed to load article." });
   }
 };
 
@@ -69,12 +64,11 @@ exports.deleteArticle = async (req, res) => {
   try {
     const article = await Article.findByIdAndDelete(id);
     if (!article) {
-      responseHelper.sendNotFoundError(res);
-      return;
+      return res.status(404).render("error", { message: "Article not found." });
     }
     res.redirect("/articles");
   } catch (error) {
-    responseHelper.handleExpressError(res, error);
+    res.status(500).render("error", { message: "Failed to delete article." });
   }
 };
 
@@ -99,39 +93,33 @@ exports.createArticle = async (req, res) => {
 
   const { error } = articleSchema.validate(req.body);
   if (error) {
-    responseHelper.handleExpressError(res, error);
-    return;
+    return res.status(400).render("createArticleForm", { error: error.details[0].message });
   }
   try {
     const article = await newArticle.save();
     res.redirect(`/articles/${article._id}`);
   } catch (error) {
-    responseHelper.handleExpressError(res, error);
+    res.status(500).render("error", { message: "Failed to create article." });
   }
 };
 
 exports.updateArticle = async (req, res) => {
   const { error } = articleSchema.validate(req.body);
   if (error) {
-    console.log("error with entry");
-    responseHelper.handleExpressError(res, error);
-  } else {
-    try {
-      const updatedArticle = await Article.findByIdAndUpdate(
-        req.params.id,
-
-        { title: req.body.articleTitle, body: req.body.articleBody },
-        { new: true }
-      );
-      if (!updatedArticle) {
-        responseHelper.sendNotFoundError(res);
-        return;
-      }
-
-      res.redirect(`/articles/${updatedArticle._id}`);
-    } catch (error) {
-      responseHelper.sendServerError(res, error);
+    return res.status(400).render("editArticleForm", { data: { _id: req.params.id, title: req.body.articleTitle, body: req.body.articleBody }, error: error.details[0].message });
+  }
+  try {
+    const updatedArticle = await Article.findByIdAndUpdate(
+      req.params.id,
+      { title: req.body.articleTitle, body: req.body.articleBody },
+      { new: true }
+    );
+    if (!updatedArticle) {
+      return res.status(404).render("error", { message: "Article not found." });
     }
+    res.redirect(`/articles/${updatedArticle._id}`);
+  } catch (error) {
+    res.status(500).render("error", { message: "Failed to update article." });
   }
 };
 
@@ -139,11 +127,11 @@ exports.editArticleForm = async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
     if (!article) {
-      responseHelper.sendNotFoundError(res);
+      return res.status(404).render("error", { message: "Article not found." });
     }
-    res.render("editArticleForm", { data: article });
+    res.render("editArticleForm", { data: article, error: null });
   } catch (error) {
-    responseHelper.sendServerError(res, error);
+    res.status(500).render("error", { message: "Failed to load article for editing." });
   }
 };
 

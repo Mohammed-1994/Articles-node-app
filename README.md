@@ -30,7 +30,7 @@ Create a new Cluster.
 
 Obtain the Connection String.
 
-Add the Connection String to the .env file using the MONGODB_URI variable.
+Add the Connection String to the .env file using the MONGODB_URL   variable.
 
 If you're using local MongoDB:
 
@@ -41,9 +41,9 @@ In the root of the project, create a file named .env and add the following:
 
 env
 Copy
-MONGODB_URI=mongodb://localhost:27017/myDatabase   # If using local MongoDB
+MONGODB_URL =mongodb://localhost:27017/myDatabase   # If using local MongoDB
 # OR
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/myDatabase?retryWrites=true&w=majority  # If using MongoDB Atlas
+MONGODB_URL =mongodb+srv://<username>:<password>@cluster0.mongodb.net/myDatabase?retryWrites=true&w=majority  # If using MongoDB Atlas
 Features Implemented
 CRUD Operations:
 
@@ -55,7 +55,7 @@ Delete articles by ID.
 
 Rate Limiting:
 
-To prevent abuse of the API, a Rate Limiter is implemented that allows up to 3 requests per 10 minutes from the same IP.
+To prevent abuse of the API, a Rate Limiter is implemented that allows up to 50 requests per 10 minutes from the same IP.
 
 Mongoose Integration:
 
@@ -69,13 +69,13 @@ bash
 Copy
 npm start
 2. API Endpoints:
-GET /articles:
+GET /api/articles:
 
 Fetch all articles, supports pagination using page and limit query parameters.
 
-Example: /articles?page=1&limit=10
+Example: /api/articles?page=1&limit=10
 
-POST /articles:
+POST api/articles:
 
 Add a new article.
 
@@ -84,14 +84,20 @@ Request body:
 json
 Copy
 {
-  "title": "Article Title",
-  "content": "Content of the article"
+  "articleTitle ": "Article Title",
+  "articleBody ": "Content of the article"
 }
-DELETE /articles/:id:
+DELETE api/articles/:id:
 
 Delete an article by ID.
 
-Example: /articles/605c72ef15320724b1b0c828
+Example: api/articles/605c72ef15320724b1b0c828
+
+PUT api/articles/:id:
+
+Update an article by ID.
+
+Example: api/articles/605c72ef15320724b1b0c828
 
 3. Rate Limiting:
 If a user exceeds the rate limit (more than 3 requests in 10 minutes), they will receive the following error:
@@ -101,18 +107,48 @@ Copy
 {
   "message": "Too many requests, please try again later."
 }
+
+4. Accessing the Web Interface:
+After starting the application, open your browser and go to:
+
+    http://localhost:PORT/articles
+
+Replace `PORT` with the port number specified in your `.env` file (default is usually 3000).
+
+You can use the web interface to create, view, edit, and delete articles using user-friendly forms.
+
+Error Responses
+All API errors are returned in JSON format. Example error response:
+
+```json
+{
+  "status": "error",
+  "message": "Description of the error"
+}
+```
+
+Validation errors will include details about what went wrong. For example, if you send an invalid article:
+
+```json
+{
+  "status": "error",
+  "message": "\"articleTitle\" is required"
+}
+```
+
 Testing
 You can use Postman or any other API testing tool to test the endpoints.
 
 Example Postman Request:
-POST to /articles:
+POST to api/articles:
 
-json
-Copy
+```json
 {
-  "title": "New Article",
-  "content": "This is a new article."
+  "articleTitle": "New Article",
+  "articleBody": "This is a new article."
 }
+-```
+
 Contributing
 If you want to contribute to this project, please fork the repository and submit a pull request.
 
