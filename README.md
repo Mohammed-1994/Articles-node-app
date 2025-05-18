@@ -99,6 +99,12 @@ Update an article by ID.
 
 Example: api/articles/605c72ef15320724b1b0c828
 
+## Postman Collection
+
+You can access the Postman Collection for this project through the following link:
+
+https://warped-meadow-314305.postman.co/workspace/115~d937ec01-356b-4751-9340-cb2642515179/collection/12791375-122d1c2f-abac-4ac3-9add-b07ef0b62ba8?action=share&creator=12791375
+
 3. Rate Limiting:
 If a user exceeds the rate limit (more than 3 requests in 10 minutes), they will receive the following error:
 
